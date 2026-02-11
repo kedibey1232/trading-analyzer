@@ -9,7 +9,16 @@ import re
 from datetime import datetime
 
 # Configuration Streamlit
-st.set_page_config(page_title="Analyseur de Graphiques Trading PRO", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Analyseur Multi-Timeframe PRO", layout="wide", initial_sidebar_state="expanded")
+
+# ====================
+# TIMEFRAMES CONFIG
+# ====================
+TIMEFRAMES = {
+    '1D': {'label': '📅 Daily (1D)', 'icon': '📅', 'role': 'Tendance macro et direction générale du marché'},
+    '4H': {'label': '⏰ 4 Heures (4H)', 'icon': '⏰', 'role': 'Tendance intermédiaire et structure de prix'},
+    '15m': {'label': '⚡ 15 Minutes (15min)', 'icon': '⚡', 'role': "Timing d'entrée précis et momentum court terme"},
+}
 
 # ====================
 # OCR AVANCÉ
@@ -32,11 +41,11 @@ def extract_text_from_image(image):
 # ====================
 # EXTRACTION DONNÉES
 # ====================
-def extract_key_data(text):
+def extract_key_data(text, forced_timeframe=None):
     """Extrait les données clés du texte OCR"""
     data = {
         'asset': 'Inconnu',
-        'timeframe': 'Inconnu',
+        'timeframe': forced_timeframe or 'Inconnu',
         'platform': 'Inconnu',
         'prices': {}
     }
@@ -53,11 +62,12 @@ def extract_key_data(text):
         if match:
             data['asset'] = f"{match.group(1)}/{match.group(2)}"
     
-    # Timeframe
-    for tf in ['1M', '1W', '1D', '4h', '1h', '30m', '15m', '5m', '1m']:
-        if tf in text:
-            data['timeframe'] = tf
-            break
+    # Timeframe (auto-detect si pas forcé)
+    if not forced_timeframe:
+        for tf in ['1M', '1W', '1D', '4h', '1h', '30m', '15m', '5m', '1m']:
+            if tf in text:
+                data['timeframe'] = tf
+                break
     
     # Prices
     prices = re.findall(r'\d+\.\d{4,5}', text)
@@ -77,31 +87,30 @@ def extract_key_data(text):
     return data
 
 # ====================
-# ANALYSE IA SIMPLE
+# ANALYSE IA PAR TF
 # ====================
-def ai_analysis_visual(image_path, key_data):
-    """Analyse visuelle : tendance, structure, momentum"""
+def ai_analysis_mtf(image_path, timeframe, role):
+    """Analyse visuelle adaptée au timeframe"""
     try:
         import ollama
         
-        asset = key_data.get('asset', 'Asset')
-        timeframe = key_data.get('timeframe', 'TF')
-        
-        prompt = f"""Analyse ce graphique {asset} {timeframe} VISUELLEMENT SEULEMENT.
+        prompt = f"""Analyse ce graphique de trading en timeframe {timeframe}.
+
+Contexte: Ce graphique montre la vue {timeframe}. Son rôle dans l'analyse multi-timeframe est: {role}.
 
 ⚠️ RÈGLES STRICTES:
-- Décris UNIQUEMENT ce que tu vois (pas de chiffres)
-- Pas de support/résistance numérotés
+- Décris UNIQUEMENT ce que tu vois visuellement
+- Pas de chiffres inventés ni de niveaux de prix
 - Sois concis et factuel
 
-Points à analyser:
+Points à analyser pour le {timeframe}:
 1. **Tendance**: Haussière/baissière/latérale?
-2. **Direction récente**: Où va le prix ces derniers jours?
-3. **Structure**: Consolidation? Montée? Baisse? Breakout?
-4. **Bougies**: Majoritairement vertes (haussier) ou rouges (baissier)?
-5. **EMA/Moyenne mobile**: Montent ou descendent?
-6. **Momentum**: Fort ou faible? Accélération ou ralentissement?
-7. **Signal global**: Résumé en UN MOT: HAUSSIER / BAISSIER / NEUTRE
+2. **Direction récente**: Mouvement dominant visible?
+3. **Structure**: Consolidation? Impulsion? Breakout? Range?
+4. **Bougies**: Majoritairement vertes ou rouges?
+5. **Moyennes mobiles**: Direction des EMA/MA si visibles?
+6. **Momentum**: Fort ou faible? En accélération?
+7. **Signal {timeframe}**: UN MOT: HAUSSIER / BAISSIER / NEUTRE
 
 Sois court et précis."""
         
@@ -115,7 +124,7 @@ Sois court et précis."""
                     prompt=prompt,
                     images=[image_path],
                     stream=False,
-                    options={"num_predict": 350}
+                    options={"num_predict": 400}
                 )
                 response_text = response.get('response', "")
                 if response_text:
@@ -160,41 +169,120 @@ def analyze_colors(image):
         return None
 
 # ====================
-# RAPPORT FINAL
+# SYNTHÈSE MTF (IA)
 # ====================
-def generate_report(key_data, color_analysis, visual_analysis):
-    """Génère un rapport complet"""
-    report = f"""
-## 📊 RAPPORT D'ANALYSE TECHNIQUE
+def generate_mtf_synthesis(analyses):
+    """Génère une synthèse multi-timeframe via IA"""
+    try:
+        import ollama
+        
+        prompt = f"""Tu es un analyste technique expert. Voici les analyses de 3 timeframes différents pour le même actif.
 
-### 📍 Identification du Graphique
-- **Asset**: {key_data.get('asset', '?')}
-- **Timeframe**: {key_data.get('timeframe', '?')}
-- **Platform**: {key_data.get('platform', '?')}
-- **Date d'analyse**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+=== ANALYSE DAILY (1D) — Tendance macro ===
+{analyses['1D']['visual']}
+Biais couleur 1D: {analyses['1D']['color_bias']}
 
-### 💰 Données de Prix (OCR)
-"""
+=== ANALYSE 4H — Tendance intermédiaire ===
+{analyses['4H']['visual']}
+Biais couleur 4H: {analyses['4H']['color_bias']}
+
+=== ANALYSE 15min — Timing d'entrée ===
+{analyses['15m']['visual']}
+Biais couleur 15min: {analyses['15m']['color_bias']}
+
+En te basant UNIQUEMENT sur ces 3 analyses, donne ta synthèse multi-timeframe:
+
+1. **Alignement des timeframes**: Les 3 TF pointent-ils dans la même direction?
+2. **Confluence**: Le signal est-il cohérent entre les TF?
+3. **Signal global**: ACHETER / VENDRE / ATTENDRE
+4. **Force du signal**: Fort (3/3 alignés) / Moyen (2/3 alignés) / Faible (1/3 ou contradictoire)
+5. **Recommandation**: Résumé concis de l'action à envisager
+
+⚠️ Rappel: Ceci est à titre ÉDUCATIF UNIQUEMENT, pas un conseil d'investissement.
+
+Sois concis et structuré."""
+        
+        models_to_try = ["llava:7b", "llava-phi", "mistral"]
+        response_text = None
+        
+        for model in models_to_try:
+            try:
+                response = ollama.generate(
+                    model=model,
+                    prompt=prompt,
+                    stream=False,
+                    options={"num_predict": 500}
+                )
+                response_text = response.get('response', "")
+                if response_text:
+                    break
+            except Exception:
+                continue
+        
+        return response_text if response_text else "⚠️ Impossible de générer la synthèse MTF"
+    except Exception as e:
+        return f"❌ Erreur synthèse: {str(e)}"
+
+# ====================
+# RAPPORT MTF
+# ====================
+def generate_mtf_report(analyses, synthesis):
+    """Génère le rapport multi-timeframe complet"""
     
-    if key_data['prices']:
-        report += f"- **Prix Actuel**: {key_data['prices'].get('current', 'N/A')}\n"
-        report += f"- **Plus Haut**: {key_data['prices'].get('high', 'N/A')}\n"
-        report += f"- **Plus Bas**: {key_data['prices'].get('low', 'N/A')}\n"
-        report += f"- **Variation**: {key_data['prices'].get('change', 'N/A')}\n"
+    # Déterminer l'asset (prendre le premier trouvé)
+    asset = 'Inconnu'
+    platform = 'Inconnu'
+    for tf in ['1D', '4H', '15m']:
+        if analyses[tf]['key_data']['asset'] != 'Inconnu':
+            asset = analyses[tf]['key_data']['asset']
+            break
+    for tf in ['1D', '4H', '15m']:
+        if analyses[tf]['key_data']['platform'] != 'Inconnu':
+            platform = analyses[tf]['key_data']['platform']
+            break
+    
+    # Signal de confluence
+    biases = [analyses[tf]['color_bias'] for tf in ['1D', '4H', '15m']]
+    haussier_count = biases.count('HAUSSIER')
+    baissier_count = biases.count('BAISSIER')
+    
+    if haussier_count == 3:
+        confluence = "🟢 FORTE CONFLUENCE HAUSSIÈRE (3/3)"
+    elif baissier_count == 3:
+        confluence = "🔴 FORTE CONFLUENCE BAISSIÈRE (3/3)"
+    elif haussier_count == 2:
+        confluence = "🟡 CONFLUENCE MODÉRÉE HAUSSIÈRE (2/3)"
+    elif baissier_count == 2:
+        confluence = "🟡 CONFLUENCE MODÉRÉE BAISSIÈRE (2/3)"
     else:
-        report += "- Données de prix non disponibles\n"
+        confluence = "⚪ PAS DE CONFLUENCE — SIGNAL MIXTE"
     
-    if color_analysis:
-        report += f"""
-### 🎨 Analyse des Couleurs (Computer Vision)
-- **Dominance Haussière (Vert)**: {color_analysis['green_pct']:.1f}%
-- **Dominance Baissière (Rouge)**: {color_analysis['red_pct']:.1f}%
-- **Biais Couleur**: {color_analysis['bias']}
-"""
-    
-    report += f"""
-### 📈 Analyse Visuelle (IA)
-{visual_analysis}
+    report = f"""
+## 📊 RAPPORT MULTI-TIMEFRAME
+
+### 📍 Identification
+- **Asset**: {asset}
+- **Platform**: {platform}
+- **Date d'analyse**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+- **Timeframes analysés**: 1D · 4H · 15min
+
+---
+
+### 🎯 Signal de Confluence (Couleurs)
+**{confluence}**
+
+| Timeframe | Biais Couleur | Vert | Rouge |
+|-----------|--------------|------|-------|
+| 📅 1D | {analyses['1D']['color_bias']} | {analyses['1D']['color_green']:.1f}% | {analyses['1D']['color_red']:.1f}% |
+| ⏰ 4H | {analyses['4H']['color_bias']} | {analyses['4H']['color_green']:.1f}% | {analyses['4H']['color_red']:.1f}% |
+| ⚡ 15min | {analyses['15m']['color_bias']} | {analyses['15m']['color_green']:.1f}% | {analyses['15m']['color_red']:.1f}% |
+
+---
+
+### 🧠 Synthèse IA Multi-Timeframe
+{synthesis}
+
+---
 
 ### ⚠️ DISCLAIMER
 Cette analyse est à titre **ÉDUCATIF UNIQUEMENT**.
@@ -206,162 +294,243 @@ Cette analyse est à titre **ÉDUCATIF UNIQUEMENT**.
     return report
 
 # ====================
-# INTERFACE PRINCIPALE
+# TRAITEMENT D'UN TF
 # ====================
-st.title("📊 Analyseur de Trading PRO")
-st.markdown("**Analyse complète : OCR Précis + Vision IA + Color Detection**")
-
-with st.sidebar:
-    st.header("ℹ️ À propos")
-    st.markdown("""
-    ### Architecture
-    1. **OCR Avancé** : Extrait prix, symbole, timeframe
-    2. **Computer Vision** : Détecte tendance par couleurs
-    3. **IA Visuelle** : Analyse structure et momentum
-    4. **Synthèse** : Rapport complet
+def process_timeframe(image, tf_key, progress_callback=None):
+    """Traite un timeframe complet : OCR + Couleurs + IA"""
+    tf_config = TIMEFRAMES[tf_key]
+    result = {}
     
-    ### Modèle
-    - **Vision**: llava:7b (4GB RAM)
-    - **Texte**: Tesseract OCR
+    # OCR
+    ocr_text = extract_text_from_image(image)
+    result['ocr_text'] = ocr_text
+    result['key_data'] = extract_key_data(ocr_text, forced_timeframe=tf_key)
     
-    ### Compatible
-    ✅ 4GB RAM
-    ✅ Linux/Mac/Windows
-    ✅ Gratuit (local)
-    """)
-
-# Upload
-uploaded_file = st.file_uploader("📸 Upload ton graphique", type=["png", "jpg", "jpeg"])
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
+    # Couleurs
+    color = analyze_colors(image)
+    if color:
+        result['color_bias'] = color['bias']
+        result['color_green'] = color['green_pct']
+        result['color_red'] = color['red_pct']
+        result['color_data'] = color
+    else:
+        result['color_bias'] = 'N/A'
+        result['color_green'] = 0.0
+        result['color_red'] = 0.0
+        result['color_data'] = None
     
-    # Affiche l'image
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.image(image, caption="Graphique uploadé", use_container_width=True)
-    
-    with col2:
-        st.markdown("### 📊 Traitement...")
-        progress_bar = st.progress(0)
-    
-    # Sauvegarde temporaire
+    # IA visuelle
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
         image.save(tmp.name)
         temp_path = tmp.name
     
-    # Extraction OCR
-    with col2:
-        st.markdown("**1/3 - OCR...**")
-    ocr_text = extract_text_from_image(image)
-    key_data = extract_key_data(ocr_text)
-    progress_bar.progress(33)
-    
-    # Analyse couleurs
-    with col2:
-        st.markdown("**2/3 - Couleurs...**")
-    color_analysis = analyze_colors(image)
-    progress_bar.progress(66)
-    
-    # Analyse IA
-    with col2:
-        st.markdown("**3/3 - IA...**")
-    visual_analysis = ai_analysis_visual(temp_path, key_data)
-    progress_bar.progress(100)
-    
-    st.markdown("---")
-    
-    # ONGLETS
-    tab1, tab2, tab3, tab4 = st.tabs(["📄 Rapport", "📝 OCR", "🎨 Couleurs", "🤖 IA Visuelle"])
-    
-    # TAB 1 : RAPPORT
-    with tab1:
-        report = generate_report(key_data, color_analysis, visual_analysis)
-        st.markdown(report)
-        
-        # Bouton export
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("📋 Copier le rapport"):
-                st.success("✅ Rapport copié !")
-    
-    # TAB 2 : OCR
-    with tab2:
-        st.subheader("Données Extraites par OCR")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Asset", key_data.get('asset', '?'))
-        with col2:
-            st.metric("Timeframe", key_data.get('timeframe', '?'))
-        with col3:
-            st.metric("Prix", key_data['prices'].get('current', '?') if key_data['prices'] else '?')
-        with col4:
-            st.metric("Platform", key_data.get('platform', '?'))
-        
-        st.markdown("### 📄 Texte Complet (OCR)")
-        st.code(ocr_text, language="text")
-    
-    # TAB 3 : COULEURS
-    with tab3:
-        st.subheader("Analyse Computer Vision")
-        
-        if color_analysis:
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("🟢 Vert (Haussier)", f"{color_analysis['green_pct']:.1f}%")
-            with col2:
-                st.metric("🔴 Rouge (Baissier)", f"{color_analysis['red_pct']:.1f}%")
-            with col3:
-                st.metric("Biais", color_analysis['bias'])
-            
-            # Visualisation
-            fig_data = {
-                'Haussier': color_analysis['green_pct'],
-                'Baissier': color_analysis['red_pct']
-            }
-            
-            col1, col2 = st.columns([1, 3])
-            with col2:
-                st.bar_chart(fig_data)
-        else:
-            st.warning("❌ Impossible d'analyser les couleurs")
-    
-    # TAB 4 : IA
-    with tab4:
-        st.subheader("Analyse Visuelle (IA)")
-        st.markdown(visual_analysis)
-        st.success("✅ Analyse générée par llava:7b")
+    result['visual'] = ai_analysis_mtf(temp_path, tf_key, tf_config['role'])
     
     # Cleanup
     try:
         os.remove(temp_path)
     except Exception:
         pass
+    
+    return result
+
+# ====================
+# INTERFACE PRINCIPALE
+# ====================
+st.title("📊 Analyseur Multi-Timeframe PRO")
+st.markdown("**Analyse complète : 3 Timeframes × (OCR + Vision IA + Couleurs) → Synthèse MTF**")
+
+with st.sidebar:
+    st.header("ℹ️ À propos")
+    st.markdown("""
+    ### Analyse Multi-Timeframe
+    Upload **3 graphiques** du même actif :
+    1. **📅 1D** → Tendance macro
+    2. **⏰ 4H** → Structure intermédiaire
+    3. **⚡ 15min** → Timing d'entrée
+    
+    ### Pipeline par graphique
+    1. **OCR** : Extrait prix, symbole
+    2. **Couleurs** : Détecte tendance
+    3. **IA** : Analyse structure
+    
+    ### Synthèse finale
+    L'IA croise les 3 analyses pour donner :
+    - Signal de **confluence**
+    - Recommandation globale
+    
+    ### Modèle
+    - **Vision**: llava:7b
+    - **Texte**: Tesseract OCR
+    
+    ### Compatible
+    ✅ 4GB RAM · ✅ Local · ✅ Gratuit
+    """)
+
+# ====================
+# UPLOAD 3 IMAGES
+# ====================
+st.subheader("📸 Upload tes 3 graphiques")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    file_1d = st.file_uploader("📅 Graphique Daily (1D)", type=["png", "jpg", "jpeg"], key="tf_1d")
+    if file_1d:
+        img_1d = Image.open(file_1d)
+        st.image(img_1d, caption="📅 Daily (1D)", use_container_width=True)
+
+with col2:
+    file_4h = st.file_uploader("⏰ Graphique 4 Heures (4H)", type=["png", "jpg", "jpeg"], key="tf_4h")
+    if file_4h:
+        img_4h = Image.open(file_4h)
+        st.image(img_4h, caption="⏰ 4H", use_container_width=True)
+
+with col3:
+    file_15m = st.file_uploader("⚡ Graphique 15 Minutes", type=["png", "jpg", "jpeg"], key="tf_15m")
+    if file_15m:
+        img_15m = Image.open(file_15m)
+        st.image(img_15m, caption="⚡ 15min", use_container_width=True)
+
+# ====================
+# TRAITEMENT
+# ====================
+if file_1d and file_4h and file_15m:
+    images = {
+        '1D': Image.open(file_1d),
+        '4H': Image.open(file_4h),
+        '15m': Image.open(file_15m),
+    }
+    
+    st.markdown("---")
+    
+    # Bouton d'analyse
+    if st.button("🚀 Lancer l'analyse Multi-Timeframe", type="primary", use_container_width=True):
+        
+        analyses = {}
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        # Traitement de chaque timeframe
+        tf_keys = ['1D', '4H', '15m']
+        for i, tf in enumerate(tf_keys):
+            tf_label = TIMEFRAMES[tf]['label']
+            status_text.markdown(f"**Analyse en cours : {tf_label}** ({i+1}/3)")
+            
+            analyses[tf] = process_timeframe(images[tf], tf)
+            progress_bar.progress(int((i + 1) / 4 * 100))
+        
+        # Synthèse MTF
+        status_text.markdown("**🧠 Synthèse Multi-Timeframe en cours...**")
+        synthesis = generate_mtf_synthesis(analyses)
+        progress_bar.progress(100)
+        status_text.markdown("**✅ Analyse terminée !**")
+        
+        st.markdown("---")
+        
+        # ====================
+        # ONGLETS RÉSULTATS
+        # ====================
+        tab_report, tab_1d, tab_4h, tab_15m = st.tabs([
+            "📊 Rapport MTF",
+            "📅 Daily (1D)",
+            "⏰ 4H",
+            "⚡ 15min"
+        ])
+        
+        # TAB : RAPPORT MTF
+        with tab_report:
+            report = generate_mtf_report(analyses, synthesis)
+            st.markdown(report)
+        
+        # Tabs individuels par timeframe
+        tf_tabs = {'1D': tab_1d, '4H': tab_4h, '15m': tab_15m}
+        
+        for tf, tab in tf_tabs.items():
+            with tab:
+                tf_config = TIMEFRAMES[tf]
+                data = analyses[tf]
+                
+                st.subheader(f"{tf_config['icon']} Analyse {tf_config['label']}")
+                
+                # Image + Métriques
+                col_img, col_data = st.columns([1, 1])
+                
+                with col_img:
+                    st.image(images[tf], caption=tf_config['label'], use_container_width=True)
+                
+                with col_data:
+                    # Métriques OCR
+                    st.markdown("#### 📝 Données OCR")
+                    m1, m2 = st.columns(2)
+                    with m1:
+                        st.metric("Asset", data['key_data'].get('asset', '?'))
+                        st.metric("Prix", data['key_data']['prices'].get('current', '?') if data['key_data']['prices'] else '?')
+                    with m2:
+                        st.metric("Timeframe", data['key_data'].get('timeframe', '?'))
+                        st.metric("Platform", data['key_data'].get('platform', '?'))
+                    
+                    # Couleurs
+                    st.markdown("#### 🎨 Couleurs")
+                    if data['color_data']:
+                        c1, c2, c3 = st.columns(3)
+                        with c1:
+                            st.metric("🟢 Vert", f"{data['color_green']:.1f}%")
+                        with c2:
+                            st.metric("🔴 Rouge", f"{data['color_red']:.1f}%")
+                        with c3:
+                            st.metric("Biais", data['color_bias'])
+                    else:
+                        st.warning("Couleurs non détectées")
+                
+                # Analyse IA
+                st.markdown("#### 🤖 Analyse IA")
+                st.markdown(data['visual'])
+                
+                # OCR brut
+                with st.expander("📄 Texte OCR brut"):
+                    st.code(data['ocr_text'], language="text")
+
+elif file_1d or file_4h or file_15m:
+    # Au moins une image mais pas les 3
+    missing = []
+    if not file_1d:
+        missing.append("📅 Daily (1D)")
+    if not file_4h:
+        missing.append("⏰ 4H")
+    if not file_15m:
+        missing.append("⚡ 15min")
+    
+    st.warning(f"⏳ Il manque encore : **{', '.join(missing)}**")
 
 else:
-    st.info("👆 Upload une image pour commencer l'analyse")
+    st.info("👆 Upload tes 3 graphiques (1D, 4H, 15min) pour commencer l'analyse multi-timeframe")
     
-    # Exemple d'utilisation
     st.markdown("---")
     st.markdown("""
     ### 📚 Comment utiliser
     
-    1. **Upload une capture** d'un graphique TradingView/MetaTrader
-    2. **L'app traite** automatiquement (OCR + IA + Couleurs)
-    3. **Reçois un rapport** complet avec :
-       - Données précises (prix, symbol, timeframe)
-       - Analyse de tendance (haussière/baissière)
-       - Structure et momentum
-       - Synthèse professionnelle
+    1. **Upload 3 captures** du **même actif** sur TradingView/MetaTrader :
+       - 📅 **Daily (1D)** : pour la tendance macro
+       - ⏰ **4H** : pour la structure intermédiaire
+       - ⚡ **15min** : pour le timing d'entrée
+    2. **Clique sur "Lancer l'analyse"** — traitement ~1-3 min
+    3. **Consulte le rapport MTF** avec signal de confluence
+    
+    ### 🎯 Pourquoi le Multi-Timeframe ?
+    
+    L'analyse MTF est utilisée par les traders professionnels :
+    - **1D** confirme la direction générale
+    - **4H** montre la structure et les niveaux clés
+    - **15min** donne le timing précis d'entrée
+    - Quand les **3 TF s'alignent** → signal fort 🟢
     
     ### ✨ Avantages
     - ✅ **Gratuit** (local, pas d'API payante)
-    - ✅ **Rapide** (30-60 secondes)
-    - ✅ **Précis** (OCR + IA combinées)
-    - ✅ **Léger** (4GB RAM compatible)
+    - ✅ **Multi-Timeframe** (3 graphiques analysés)
+    - ✅ **Confluence IA** (synthèse automatique)
     - ✅ **Privé** (aucune donnée envoyée)
     """)
 
 st.markdown("---")
-st.caption("📊 Trading Chart Analyzer PRO | Ollama + Tesseract + OpenCV")
+st.caption("📊 Trading Chart Analyzer PRO — Multi-Timeframe | Ollama + Tesseract + OpenCV")
